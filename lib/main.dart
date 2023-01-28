@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flash_chat/screens/welcome_screen.dart';
 import 'package:flash_chat/screens/login_screen.dart';
@@ -9,6 +10,20 @@ void main() => runApp(FlashChat());
 class FlashChat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder(
+      builder: ((context, snapshot) {
+        if(snapshot.connectionState==ConnectionState.done){
+          return MyHomeApp();
+        }else{
+          return MaterialApp();
+        }
+
+      }),
+      future: Firebase.initializeApp(),
+    );
+  }
+
+  MaterialApp MyHomeApp() {
     return MaterialApp(
       theme: ThemeData.dark().copyWith(
         textTheme: TextTheme(

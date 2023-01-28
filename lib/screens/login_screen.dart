@@ -1,5 +1,9 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flash_chat/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'nextPageButton.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String id='login_screen';
@@ -8,10 +12,13 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  @override
+  String email;
+  String password;
+  final _auth=FirebaseAuth.instance;
+  
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.black,
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 24.0),
         child: Column(
@@ -30,8 +37,10 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             TextField(
               onChanged: (value) {
-                //Do something with the user input.
+                email=value;
+                print(email);
               },
+              keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
                 hintText: 'Enter your email',
                 contentPadding:
@@ -56,8 +65,10 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             TextField(
               onChanged: (value) {
-                //Do something with the user input.
+                password=value;
+                print(password);
               },
+              obscureText: true,
               decoration: InputDecoration(
                 hintText: 'Enter your password.',
                 contentPadding:
@@ -80,8 +91,13 @@ class _LoginScreenState extends State<LoginScreen> {
             SizedBox(
               height: 24.0,
             ),
-            NextPageButton(color: Colors.lightBlueAccent,text: 'log in',func: (() {
-              Navigator.pushNamed(context, LoginScreen.id);
+            NextPageButton(color: Colors.lightBlueAccent,text: 'log in',func: (() async {
+              final newUser=await _auth.signInWithEmailAndPassword(email: email, password: password);
+              if (newUser!=null) {
+                Navigator.pushNamed(context, ChatScreen.id);
+              }else{
+                Navigator.pushNamed(context, LoginScreen.id);
+              }
             }),),
           ],
         ),
