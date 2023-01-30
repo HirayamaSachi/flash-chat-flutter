@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flash_chat/constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ChatScreen extends StatefulWidget {
   static const id='chat_screen';
@@ -11,6 +12,9 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final _auth=FirebaseAuth.instance;
   User loginUser;
+  String _messageText;
+  FirebaseFirestore _firestore=FirebaseFirestore.instance;
+  final _controller=TextEditingController();
 
   void getCurrentUser() {
   try {
@@ -25,6 +29,15 @@ class _ChatScreenState extends State<ChatScreen> {
   print(e);
 }
 }
+
+  void getMessageStream()async{
+    await for (var snapshot in await _firestore.collection('messages').snapshots()) {
+      for (var messages in snapshot.docs) {
+        print(messages.data());
+      }
+    }
+  }
+
 @override
   void initState() {
     super.initState();
@@ -32,6 +45,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
   @override
   Widget build(BuildContext context) {
+    getMessageStream();
     return Scaffold(
       appBar: AppBar(
         leading: null,
@@ -58,15 +72,20 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: <Widget>[
                   Expanded(
                     child: TextField(
+                      controller: _controller,
                       onChanged: (value) {
-                        //Do something with the user input.
+                        _messageText=value;
                       },
                       decoration: kMessageTextFieldDecoration,
                     ),
                   ),
                   FlatButton(
                     onPressed: () {
-                      //Implement send functionality.
+                      if (_messageText!=null) {
+                        _firestore.collection('messages').add(
+                            {'sender': loginUser.email, 'text': _messageText});
+                      }
+                      _controller.clear();
                     },
                     child: Text(
                       'Send',
