@@ -65,7 +65,7 @@ class _ChatScreenState extends State<ChatScreen> {
           children: <Widget>[
               StreamBuilder(
               builder: ((context, snapshot) {
-                List<Text>messageWidgets=[];
+                List<messageBubble>messageWidgets=[];
                 if(!snapshot.hasData){
                   return Center(child: CircularProgressIndicator(),);
               }
@@ -74,11 +74,11 @@ class _ChatScreenState extends State<ChatScreen> {
                   final text=message.data()['text'];
                   final sender=message.data()['sender'];
 
-                  final messageWidget=Text('$text from $sender');
+                  final messageWidget=messageBubble(text: text, sender: sender);
                   messageWidgets.add(messageWidget);
                 }
 
-                return Column(children: messageWidgets,);
+                return Expanded(child: ListView(children: messageWidgets,));
               }),
               stream: _firestore.collection('messages').snapshots(),
             ),
@@ -114,6 +114,45 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class messageBubble extends StatelessWidget {
+  const messageBubble({
+    Key key,
+    @required this.text,
+    @required this.sender,
+  }) : super(key: key);
+
+  final String text;
+  final String sender;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(10.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+                width: 150,
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(30), color: Colors.lightBlue),
+                padding: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
+                child: Text(
+                  '$text',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                  ),
+                )),
+          ),
+          Text('$sender',style: TextStyle(fontSize: 12,color: Colors.grey),)
+        ],
       ),
     );
   }
