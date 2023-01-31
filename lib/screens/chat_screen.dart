@@ -74,13 +74,15 @@ class _ChatScreenState extends State<ChatScreen> {
                   final text=message.data()['text'];
                   final sender=message.data()['sender'];
 
-                  final messageWidget=messageBubble(text: text, sender: sender);
+                  final messageWidget=(_auth.currentUser.email==sender)?messageBubble(text: text, sender: sender,isMe: true,):messageBubble(text: text, sender: sender,isMe: false,);
                   messageWidgets.add(messageWidget);
                 }
+                for (var e in messageWidgets) {
+                }
 
-                return Expanded(child: ListView(children: messageWidgets,));
+                return Expanded(child: ListView(children: messageWidgets,reverse: true,));
               }),
-              stream: _firestore.collection('messages').snapshots(),
+              stream: _firestore.collection('messages').orderBy('created_at',descending: true).snapshots(),
             ),
             Container(
               decoration: kMessageContainerDecoration,
@@ -98,10 +100,11 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   FlatButton(
                     onPressed: () {
-                      if (_messageText!=null) {
+                      if (_messageText!=null && _messageText!="") {
                         _firestore.collection('messages').add(
-                            {'sender': loginUser.email, 'text': _messageText});
+                            {'sender': loginUser.email, 'text': _messageText,'created_at':Timestamp.fromDate(DateTime.now())});
                       }
+                      _messageText=null;
                       _controller.clear();
                     },
                     child: Text(
@@ -124,24 +127,28 @@ class messageBubble extends StatelessWidget {
     Key key,
     @required this.text,
     @required this.sender,
+    @required this.isMe,
   }) : super(key: key);
 
   final String text;
   final String sender;
+  final bool isMe;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: (isMe)?CrossAxisAlignment.end:CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Container(
                 width: 150,
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(30), color: Colors.lightBlue),
+                decoration: (isMe)?BoxDecoration(
+                    borderRadius: BorderRadius.only(topLeft: Radius.circular(30),bottomLeft: Radius.circular(30),bottomRight: Radius.circular(30) ), color: Colors.lightBlue):
+                    BoxDecoration(
+                    borderRadius: BorderRadius.only(topRight: Radius.circular(30), bottomLeft: Radius.circular(30),bottomRight: Radius.circular(30) ), color: Colors.grey),
                 padding: EdgeInsets.symmetric(horizontal: 20,vertical: 10),
                 child: Text(
                   '$text',
